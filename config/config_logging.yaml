@@ -3,7 +3,7 @@
 # Valid levels: DEBUG, INFO, WARNING, ERROR, CRITICAL
 logging:
   # Default log level to use if environment variable is not set
-  default_level: ERROR
+  default_level: DEBUG
   
   # Log files directory (optional - if not specified, logs will be in current directory)
   log_directory: "logs"
@@ -93,6 +93,11 @@ logging:
       env_var: "WEBSERVER_LOG_LEVEL"
       default_level: ERROR
       log_file: "webserver.log"
+    
+    qdrant_client:
+      env_var: "QDRANT_CLIENT_LOG_LEVEL"
+      default_level: DEBUG
+      log_file: "qdrant_client.log"
   
   # Global settings
   global:

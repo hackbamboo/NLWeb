@@ -74,6 +74,9 @@ def init():
                 elif db_type == "bing_search":
                     from retrieval_providers.bing_search_client import BingSearchClient
                     _preloaded_modules[db_type] = BingSearchClient
+                elif db_type == "google_search":
+                    from retrieval_providers.google_custom_search_engine_client import GoogleCustomSearchClient
+                    _preloaded_modules[db_type] = GoogleCustomSearchClient
 
             except Exception as e:
                 logger.warning(f"Failed to preload {db_type} client module: {e}")
@@ -90,6 +93,7 @@ _db_type_packages = {
     "shopify_mcp": ["aiohttp>=3.8.0"],
     "cloudflare_autorag": ['cloudflare>=4.3.1', "httpx>=0.28.1", "zon>=3.0.0", "markdown>=3.8.2", "beautifulsoup4>=4.13.4"],
     "bing_search": ["httpx>=0.28.1"],  # Bing search uses httpx for API calls
+    "google_search": ["httpx>=0.28.1"],  # Google Custom Search uses httpx for API calls
 }
 
 # Cache for installed packages
@@ -497,6 +501,9 @@ class VectorDBClient:
         elif db_type == "bing_search":
             # Bing search just needs to be enabled (API key can be hardcoded or from env)
             return True
+        elif db_type == "google_search":
+            # Google Custom Search just needs to be enabled (API key can be hardcoded or from env)
+            return True
         else:
             logger.warning(f"Unknown database type {db_type} for endpoint {name}")
             return False
@@ -570,6 +577,9 @@ class VectorDBClient:
                 elif db_type == "bing_search":
                     from retrieval_providers.bing_search_client import BingSearchClient
                     client = BingSearchClient(endpoint_name)
+                elif db_type == "google_search":
+                    from retrieval_providers.google_custom_search_engine_client import GoogleCustomSearchClient
+                    client = GoogleCustomSearchClient(endpoint_name)
                 else:
                     error_msg = f"Unsupported database type: {db_type}"
                     logger.error(error_msg)
@@ -795,6 +805,9 @@ class VectorDBClient:
             List of search results
         """
         # Handle configured sites
+
+        print("[DEBUG] Retriever called")
+
         if site == "all":
             sites = CONFIG.nlweb.sites
             if sites and sites != "all":
@@ -842,10 +855,12 @@ class VectorDBClient:
                     
                     # Use search_all_sites if site is "all"
                     if site == "all":
+                        print(f"[DEBUG] Using search_all_sites for endpoint")
                         task = asyncio.create_task(client.search_all_sites(query, num_results, **kwargs))
                     else:
                         # Pass all arguments including handler to all clients
                         # Individual clients can choose to use or ignore the handler
+                        print(f"[DEBUG] Using search for endpoint: {endpoint_name} with site: {site} {query}")
                         task = asyncio.create_task(client.search(query, site, num_results, **kwargs))
                     tasks.append(task)
                     endpoint_names.append(endpoint_name)
@@ -1071,7 +1086,16 @@ def get_vector_db_client(endpoint_name: Optional[str] = None,
     
     # Create a cache key based on endpoint_name
     # Note: We don't include query_params in the key since they're typically the same
-    cache_key = endpoint_name or 'default'
+    #cache_key = endpoint_name or 'default'
+       # Include query_params in cache key so clients created with different params are distinct
+
+    qp_key = ""
+    try:
+            qp_key = json.dumps(query_params, sort_keys=True) if query_params else ""
+    except Exception:
+        qp_key = str(query_params)
+    cache_key = f"{endpoint_name or 'default'}::{qp_key}"
+    print(f"[DEBUG] get_vector_db_client called. cache_key={cache_key!r}")
     
     # Check if we have a cached client
     if cache_key in _client_cache:

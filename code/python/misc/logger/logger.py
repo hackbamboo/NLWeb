@@ -219,7 +219,7 @@ def setup_logger(name, config=None):
 def get_logger(
     name: str,
     level_env_var: str = "LOG_LEVEL",
-    default_level: LogLevel = LogLevel.ERROR,
+    default_level: LogLevel = LogLevel.DEBUG,
     log_file: Optional[str] = None
 ) -> LoggerUtility:
     """

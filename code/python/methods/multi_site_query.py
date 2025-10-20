@@ -81,8 +81,8 @@ class MultiSiteQueryHandler:
             # Send the complete list of sites that are being searched
             if sites_to_query:
                 await self._send_sites_list(sites_to_query)
-            else:
-                print(f"[MULTI-SITE] WARNING: No sites returned from who endpoint!")
+            # else:
+            #     print(f"[MULTI-SITE] WARNING: No sites returned from who endpoint!")
             
             # Wait for all site queries to complete
             if self.active_tasks:

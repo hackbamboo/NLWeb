@@ -4,7 +4,7 @@
 # Comma-separated list of allowed sites, if you have multiple sites
 # in your store and want to restrict search to some sites. Defaults 
 # to all, for now.
-#sites: "yoursite"
+site: "atlasobscura.com,cloud.google.com"
 
 # Data folders for JSON files and embeddings
 data_folders:
@@ -25,7 +25,7 @@ analyze_query_enabled: true
 
 # Enable or disable decontextualization
 # When set to false, the system will not attempt to decontextualize queries based on previous context
-decontextualize_enabled: true
+decontextualize_enabled: false
 
 # Enable or disable required info checking
 # When set to false, the system will not check if required information is present before processing queries

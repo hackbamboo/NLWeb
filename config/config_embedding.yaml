@@ -1,4 +1,4 @@
-preferred_provider: azure_openai
+preferred_provider: gemini
 
 providers:
   azure_openai:

@@ -118,6 +118,9 @@ The user's question is: {request.query}. The item's description is {item.descrip
         # Use product-focused prompt for Bing search or known e-commerce sites
         if db_param == 'bing_search':
             return self.PRODUCT_FOCUSED_PROMPT[0], self.PRODUCT_FOCUSED_PROMPT[1]
+        
+        if db_param == 'google_search':
+            return self.PRODUCT_FOCUSED_PROMPT[0], self.PRODUCT_FOCUSED_PROMPT[1]
        
         # Check for custom prompts
         prompt_str, ans_struc = find_prompt(site, item_type, self.RANKING_PROMPT_NAME)
@@ -163,6 +166,7 @@ The user's question is: {request.query}. The item's description is {item.descrip
             description = trim_json(json_str)
             prompt = fill_prompt(prompt_str, self.handler, {"item.description": description})
             ranking = await ask_llm(prompt, ans_struc, level=self.level, query_params=self.handler.query_params)
+            logger.debug(f"Ranking result for {name}: {ranking}")
             
             # Handle both string and dictionary inputs for json_str
             schema_object = json_str if isinstance(json_str, dict) else json.loads(json_str)

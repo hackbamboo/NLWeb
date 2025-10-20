@@ -12,7 +12,7 @@ from core.retriever import upload_documents as upload_documents_wrapper, get_vec
 
 # Default collection name and embedding size
 COLLECTION_NAME = "nlweb_collection"
-EMBEDDING_SIZE = 1536
+EMBEDDING_SIZE = 3072
 
 # Default embeddings path (can be overridden by command line argument)
 DEFAULT_EMBEDDINGS_PATH = "./data/sites/embeddings/small"

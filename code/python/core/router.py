@@ -389,6 +389,7 @@ class ToolSelector:
     async def do(self):
         """Main method that evaluates tools and stores results."""
         try:
+            logger.info("Starting tool selection process")
             # Check if tool selection is enabled in config
             if not CONFIG.is_tool_selection_enabled():
                 logger.info("Tool selection is disabled in config, skipping")
@@ -435,6 +436,7 @@ class ToolSelector:
 
             # Skip tool selection if generate_mode is summarize or generate
             generate_mode = getattr(self.handler, 'generate_mode', 'none')
+            logger.info(f"Generate mode: {generate_mode}")
             if generate_mode in ['summarize', 'generate']:
                 logger.info(f"Skipping tool selection because generate_mode is '{generate_mode}'")
                 await self.handler.state.precheck_step_done(self.STEP_NAME)

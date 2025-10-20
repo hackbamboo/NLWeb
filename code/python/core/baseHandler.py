@@ -333,12 +333,15 @@ class NLWebHandler:
             
             await self.prepare()
             if (self.query_done):
+                logger.debug("Query marked as done after preparation")
                 return [msg.to_dict() for msg in self.messages]
             if (not self.fastTrackWorked):
+                logger.debug("Routing query based on tool selection")
                 await self.route_query_based_on_tools()
             
             # Check if query is done regardless of whether FastTrack worked
             if (self.query_done):
+                logger.debug("Query marked as done after preparation after tool routing")
                 return [msg.to_dict() for msg in self.messages]
 
             await post_ranking.PostRanking(self).do()
@@ -405,6 +408,7 @@ class NLWebHandler:
                 self.final_retrieved_items = []
                 self.retrieval_done_event.set()
             else:
+                logger.debug("Waiting for retrieval search to complete")
                 items = await search(
                     self.decontextualized_query, 
                     self.site,

@@ -62,7 +62,7 @@ class FastTrack:
         self.handler.retrieval_done_event.set()  # Use event instead of flag
         
         try:
-           
+            logger.debug("Starting retrieval search for fast track")
             items = await search(
                 self.handler.query, 
                 self.handler.site,
@@ -72,6 +72,7 @@ class FastTrack:
             self.handler.final_retrieved_items = items
           
             if (not self.handler.query_done and not self.handler.abort_fast_track_event.is_set()):
+                logger.debug("Starting ranking for fast track")
                 self.handler.fastTrackRanker = ranking.Ranking(self.handler, items, ranking.Ranking.FAST_TRACK)
                 await self.handler.fastTrackRanker.do()
                 return

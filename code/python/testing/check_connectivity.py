@@ -101,8 +101,8 @@ async def check_retriever(retrieval_name) -> bool:
         client = get_vector_db_client(retrieval_name)
         resp = await client.search("e", site="all", num_results=1)
         good_output = len(resp) > 0 #and len(resp[0]) == 4
-        #print(f"Output from {retrieval_name}: {str(resp)}")
-        #print(f"Good Output from {retrieval_name}: {str(good_output)}")
+        print(f"Output from {retrieval_name}: {str(resp)}")
+        print(f"Good Output from {retrieval_name}: {str(good_output)}")
         if not resp:
             print(f"❌ Retriever API connectivity check failed for {retrieval_name}: No valid output received.")
             return False

@@ -404,6 +404,7 @@ class AzureSearchClient(RetrievalClientBase):
         Returns:
             List[List[str]]: List of search results
         """
+        print("[DEBUG] azure search client")
         index_name = index_name or self.default_index_name
         
         # Get embedding for the query

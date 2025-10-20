@@ -850,7 +850,8 @@
             // Build arguments object
             const args = { 
                 query,
-                streaming: true 
+                streaming: true ,
+                generate_mode: "generate"
             };
             if (site) args.site = site;
             if (prevQuery) args.prev_query = prevQuery;

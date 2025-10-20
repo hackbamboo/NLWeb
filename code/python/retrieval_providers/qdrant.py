@@ -218,7 +218,7 @@ class QdrantVectorClient(RetrievalClientBase):
             return False
     
     async def create_collection(self, collection_name: Optional[str] = None, 
-                              vector_size: int = 1536) -> bool:
+                              vector_size: int = 3072) -> bool:
         """
         Create a collection in Qdrant if it doesn't exist.
         
@@ -264,7 +264,7 @@ class QdrantVectorClient(RetrievalClientBase):
             raise
     
     async def recreate_collection(self, collection_name: Optional[str] = None, 
-                                vector_size: int = 1536) -> bool:
+                                vector_size: int = 3072) -> bool:
         """
         Recreate a collection in Qdrant (drop and create).
         
@@ -311,7 +311,7 @@ class QdrantVectorClient(RetrievalClientBase):
             raise
     
     async def ensure_collection_exists(self, collection_name: Optional[str] = None, 
-                                     vector_size: int = 1536) -> bool:
+                                     vector_size: int = 3072) -> bool:
         """
         Ensure that a collection exists, creating it if necessary.
         
@@ -505,6 +505,8 @@ class QdrantVectorClient(RetrievalClientBase):
             name = payload.get("name", "")
             site_name = payload.get("site", "")
 
+            # print(f"[DEBUG] Retrieved item - payload {payload}")
+
             results.append([url, schema, name, site_name])
 
         return results
@@ -526,8 +528,8 @@ class QdrantVectorClient(RetrievalClientBase):
             List[List[str]]: List of search results in format [url, text_json, name, site]
         """
         collection_name = collection_name or self.default_collection_name
-        logger.info(f"Starting Qdrant search - collection: {collection_name}, site: {site}, num_results: {num_results}")
-        logger.debug(f"Query: {query}")
+        logger.debug(f"[DEBUG] Starting Qdrant search - collection: {collection_name}, site: {site}, num_results: {num_results}")
+        logger.debug(f"[DEBUG]]Query: {query}")
         
         try:
             start_embed = time.time()
@@ -702,6 +704,7 @@ class QdrantVectorClient(RetrievalClientBase):
             List[List[str]]: List of search results
         """
         # This is just a convenience wrapper around the regular search method with site="all"
+        print("[DEBUG] search_all_sites called")
         return await self.search(query, "all", num_results, collection_name, query_params)
     
     async def get_sites(self, collection_name: Optional[str] = None) -> List[str]:

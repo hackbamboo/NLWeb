@@ -152,6 +152,7 @@ def fill_prompt(prompt_str, handler, pr_dict={}):
                 value = str(value)
                 
             prompt_str = prompt_str.replace("{" + variable + "}", value)
+            logger.debug(f"debug prompt_str: {prompt_str} with pr_dict {pr_dict}")
         return prompt_str
     except Exception as e:
         logger.error(f"Error filling prompt: {str(e)}")

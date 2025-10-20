@@ -179,7 +179,7 @@ class GeminiProvider(LLMProvider):
             print(f"Temperature: {temperature}")
             print(f"Timeout: {timeout} seconds")
             print(f"Prompt length: {len(prompt)} chars")
-            print(f"First 200 chars of prompt: {prompt[:200]}...")
+            print(f"First 50 chars of prompt: {prompt[:50]}...")
             
             response = await asyncio.wait_for(
                 asyncio.to_thread(
@@ -192,28 +192,28 @@ class GeminiProvider(LLMProvider):
             )
             
             print(f"Response received: {response is not None}")
-            if response:
-                print(f"Has text attr: {hasattr(response, 'text')}")
-                if hasattr(response, 'text'):
-                    print(f"Text is not None: {response.text is not None}")
-                    if response.text:
-                        print(f"Text length: {len(response.text)}")
-                        print(f"First 200 chars of response: {response.text[:200]}...")
-                # Debug: print all attributes of response
-                print(f"Response attributes: {dir(response)}")
-                if hasattr(response, 'candidates'):
-                    print(f"Candidates: {response.candidates}")
-                    if response.candidates and len(response.candidates) > 0:
-                        candidate = response.candidates[0]
-                        print(f"First candidate content: {candidate.content}")
-                        if candidate.content and hasattr(candidate.content, 'parts'):
-                            print(f"Content parts: {candidate.content.parts}")
-                            if candidate.content.parts:
-                                for i, part in enumerate(candidate.content.parts):
-                                    print(f"Part {i}: {part}")
-                        print(f"Finish reason: {candidate.finish_reason if hasattr(candidate, 'finish_reason') else 'N/A'}")
-                if hasattr(response, 'prompt_feedback'):
-                    print(f"Prompt feedback: {response.prompt_feedback}")
+            # if response:
+            #     print(f"Has text attr: {hasattr(response, 'text')}")
+            #     if hasattr(response, 'text'):
+            #         print(f"Text is not None: {response.text is not None}")
+            #         if response.text:
+            #             print(f"Text length: {len(response.text)}")
+            #             print(f"First 200 chars of response: {response.text[:200]}...")
+            #     # Debug: print all attributes of response
+            #     print(f"Response attributes: {dir(response)}")
+            #     if hasattr(response, 'candidates'):
+            #         print(f"Candidates: {response.candidates}")
+            #         if response.candidates and len(response.candidates) > 0:
+            #             candidate = response.candidates[0]
+            #             print(f"First candidate content: {candidate.content}")
+            #             if candidate.content and hasattr(candidate.content, 'parts'):
+            #                 print(f"Content parts: {candidate.content.parts}")
+            #                 if candidate.content.parts:
+            #                     for i, part in enumerate(candidate.content.parts):
+            #                         print(f"Part {i}: {part}")
+            #             print(f"Finish reason: {candidate.finish_reason if hasattr(candidate, 'finish_reason') else 'N/A'}")
+            #     if hasattr(response, 'prompt_feedback'):
+            #         print(f"Prompt feedback: {response.prompt_feedback}")
             
             # Try to extract text from response or candidates
             content = None
@@ -242,10 +242,10 @@ class GeminiProvider(LLMProvider):
                 # Return empty dict with score 0 for WHO ranking
                 return {"score": 0, "description": "Failed to get response from Gemini"}
             
-            logger.debug("Received response from Gemini API")
-            logger.debug(f"\t\tResponse content: {content[:100]}...")  # Log first 100 chars
+            #logger.debug("Received response from Gemini API")
+            #logger.debug(f"\t\tResponse content: {content[:100]}...")  # Log first 100 chars
             print(f"Extracted content length: {len(content)}")
-            print(f"First 200 chars of extracted content: {content[:200]}...")
+            #print(f"First 200 chars of extracted content: {content[:200]}...")
             print("=== END GEMINI DEBUG (SUCCESS) ===\n")
             return self.clean_response(content)
         except asyncio.TimeoutError:

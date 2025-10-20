@@ -4,7 +4,7 @@ endpoints:
 
 #Azure endpoints
   azure_ai_search:
-    enabled: true
+    enabled: false
     api_key_env: AZURE_VECTOR_SEARCH_API_KEY
     api_endpoint_env: AZURE_VECTOR_SEARCH_ENDPOINT
     index_name: embeddings1536
@@ -27,7 +27,7 @@ endpoints:
 
   # Bing Web Search API for real-time web search
   bing_search:
-    enabled: true
+    enabled: false
     # API key for Bing Web Search API
     api_key_env: BING_API_KEY
     # Bing API endpoint (optional, defaults to standard Bing API)
@@ -36,6 +36,23 @@ endpoints:
     index_name: web_search
     # Database type
     db_type: bing_search
+
+  google_custom_search_engine:
+    enabled: true
+    api_key_env: GOOGLE_API_KEY
+    api_endpoint_env: GOOGLE_API_ENDPOINT
+    cx: f1f095ea99295495c  # Custom Search Engine ID (if applicable)
+    # Index name (not used for Bing, but kept for consistency)
+    index_name: google_search
+    # Database type
+    db_type: google_search
+  
+  # gcp_vais_index:
+  #   enabled: false
+  #   api_key_env: GCP_VAIS_API_KEY
+  #   api_endpoint_env: GCP_VAIS_ENDPOINT
+  #   index_name: gcp_vais_index
+  #   db_type: gcp_vais
 
   clinical_trials_search:
     enabled: false
@@ -114,9 +131,9 @@ endpoints:
 
   # Option 1: Local file-based Qdrant storage
   qdrant_local:
-    enabled: true
+    enabled: false
     # Use local file-based storage with a specific path
-    database_path: "../data/db"
+    database_path: "/Users/zhuchen/NLWeb/code/data/db"
     # Set the collection name to use
     index_name: nlweb_collection
     # Specify the database type
@@ -136,7 +153,7 @@ endpoints:
 
   # Shopify MCP endpoint for product search across Shopify stores
   shopify:
-    enabled: true
+    enabled: false
     db_type: shopify_mcp
     # Note: mcp_endpoint will be dynamically set based on the site being queried
     name: Shopify MCP Search

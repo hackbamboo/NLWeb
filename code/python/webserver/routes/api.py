@@ -107,6 +107,7 @@ async def handle_regular_ask(request: web.Request, query_params: Dict[str, Any])
         generate_mode = query_params.get('generate_mode', 'none')
         
         if generate_mode == 'generate':
+            logger.debug("Using GenerateAnswer handler for regular ask")
             handler = GenerateAnswer(query_params, None)
         else:
             from core.baseHandler import NLWebHandler
@@ -114,6 +115,7 @@ async def handle_regular_ask(request: web.Request, query_params: Dict[str, Any])
         
         # Run the query - it will return the complete response
         result = await handler.runQuery()
+        print("DEBUG runQuery result:", web.json_response(result))
         
         # Return the response directly
         return web.json_response(result)

@@ -58,6 +58,7 @@ class RetrievalProviderConfig:
     use_knn: Optional[bool] = None
     enabled: bool = False
     vector_type: Optional[Dict[str, Any]] = None
+    cx: Optional[str] = None  # Custom Search Engine ID (if applicable)
 @dataclass
 class SSLConfig:
     enabled: bool = False
@@ -124,8 +125,8 @@ class ConversationStorageConfig:
     password: Optional[str] = None
     connection_string: Optional[str] = None
     # Other settings
-    vector_size: int = 1536
-    vector_dimensions: int = 1536
+    vector_size: int = 3072
+    vector_dimensions: int = 3072
     partition_key: Optional[str] = None
     max_conversations: Optional[int] = None
     ttl_seconds: Optional[int] = None
@@ -346,7 +347,8 @@ class AppConfig:
                 db_type=self._get_config_value(cfg.get("db_type")),  # Add db_type
                 enabled=cfg.get("enabled", False),  # Add enabled field
                 use_knn=cfg.get("use_knn"),
-                vector_type=cfg.get("vector_type")
+                vector_type=cfg.get("vector_type"),
+                cx=cfg.get("cx")
             )
     
     def load_webserver_config(self, path: str = "config_webserver.yaml"):

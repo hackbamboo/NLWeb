@@ -60,6 +60,7 @@ The site's description is: {site_description}
     async def rankItem(self, url, json_str, name, site):
         """Rank a single site for relevance to the query."""
         try:
+            logger.debug(f"Ranking site: {name} ({url})")
             description = trim_json(json_str)
             prompt, ans_struc = self.get_ranking_prompt(self.handler.query, description)
             ranking = await ask_llm(prompt, ans_struc, level=self.level, 

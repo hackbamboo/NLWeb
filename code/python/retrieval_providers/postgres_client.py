@@ -410,6 +410,7 @@ class PgVectorClient(RetrievalClientBase):
             List of search results, where each result is a list of strings:
             [url, schema_json, name, site]
         """
+        print("[DEBUG] PgVector search called`")
         start_time = time.time()
         logger.info(f"Searching for '{query[:50]}...' in site: {site}, num_results: {num_results}")
         

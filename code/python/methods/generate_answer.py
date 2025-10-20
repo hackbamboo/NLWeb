@@ -31,7 +31,7 @@ logger = get_configured_logger("generate_answer")
 
 class GenerateAnswer(NLWebHandler):
 
-    GATHER_ITEMS_THRESHOLD = 55
+    GATHER_ITEMS_THRESHOLD = 1
 
     RANKING_PROMPT_NAME = "RankingPromptForGenerate"
     SYNTHESIZE_PROMPT_NAME = "SynthesizePromptForGenerate"
@@ -41,12 +41,15 @@ class GenerateAnswer(NLWebHandler):
         super().__init__(query_params, handler)
         self.items = []
         self._results_lock = asyncio.Lock()  # Add lock for thread-safe operations
+        self.return_value = {}
+        self.final_ranked_answers = []
+        self.query_params = query_params
         logger.info(f"GenerateAnswer initialized with query_params: {query_params}")
         log(f"GenerateAnswer query_params: {query_params}")
 
     async def runQuery(self):
         try:
-            logger.info(f"Starting query execution for conversation_id: {self.conversation_id}")
+            logger.info(f"[GenerateAnswer]Starting query execution for conversation_id: {self.conversation_id}")
             await self.prepare()
             if (self.query_done):
                 logger.info("Query done prematurely")
@@ -62,7 +65,7 @@ class GenerateAnswer(NLWebHandler):
     
     async def prepare(self):
         # runs the tasks that need to be done before retrieval, ranking, etc.
-        logger.info("Starting preparation phase")
+        logger.info("[GenerateAnswer]Starting preparation phase")
         tasks = []
         
         # Adding all necessary preparation tasks
@@ -89,33 +92,57 @@ class GenerateAnswer(NLWebHandler):
             return
             
         try:
-            logger.debug(f"Ranking item: {name} from {site}")
+            logger.debug(f"[GenerateAnswer]Ranking item: {name} from {site}")
             prompt_str, ans_struc = find_prompt(site, self.item_type, self.RANKING_PROMPT_NAME)
             description = trim_json_hard(json_str)
             prompt = fill_prompt(prompt_str, self, {"item.description": description})
             logger.debug(f"Sending ranking request to LLM for item: {name}")
             ranking = await ask_llm(prompt, ans_struc, level="low", query_params=self.query_params)
             logger.debug(f"Received ranking score: {ranking.get('score', 'N/A')} for item: {name}")
+            # Coerce score to numeric safely
+            raw_score = ranking.get("score") if isinstance(ranking, dict) else None
+            try:
+                score_val = float(raw_score) if raw_score is not None else 0.0
+            except (ValueError, TypeError):
+                logger.debug(f"Could not parse score '{raw_score}' for item {name}, defaulting to 0")
+                score_val = 0.0
+
+            # Parse schema_object safely (handle dict or JSON string)
+            try:
+                if isinstance(json_str, dict):
+                    schema_obj = json_str
+                elif isinstance(json_str, str) and json_str.strip().startswith("{"):
+                    schema_obj = json.loads(json_str)
+                else:
+                    schema_obj = {}
+            except Exception as e:
+                logger.debug(f"Error parsing schema_object for {name}: {e}")
+                schema_obj = {}
+
             ansr = {
                 'url': url,
                 'site': site,
                 'name': name,
                 'ranking': ranking,
-                'schema_object': json.loads(json_str),
+                'schema_object': schema_obj,
                 'sent': False,
             }
-            
-            if (ranking["score"] > self.GATHER_ITEMS_THRESHOLD):
-                logger.info(f"High score item: {name} (score: {ranking['score']})")
-                async with self._results_lock:  # Thread-safe append
+
+            # Log decision and append under lock
+            logger.debug(f"[GenerateAnswer]Score for {name}: {score_val} threshold: {self.GATHER_ITEMS_THRESHOLD}")
+            if score_val > float(self.GATHER_ITEMS_THRESHOLD):
+                logger.info(f"High score item: {name} (score: {score_val}) - appending to final_ranked_answers")
+                async with self._results_lock:
                     self.final_ranked_answers.append(ansr)
+                    logger.debug(f"final_ranked_answers length is now {len(self.final_ranked_answers)}")
+                    
                     
         except Exception as e:
             logger.error(f"Error in rankItem: {e}")
             logger.debug("Full error trace: ", exc_info=True)
 
     async def get_ranked_answers(self):
-        logger.info("Starting retrieval and ranking process")
+        logger.info("[GenerateAnswer]Starting retrieval and ranking process")
         try:
             # Wait for retrieval to be done if not already
             logger.info("Retrieving items for query")
@@ -145,7 +172,7 @@ class GenerateAnswer(NLWebHandler):
 
     async def getDescription(self, url, json_str, query, answer, name, site):
         try:
-            logger.debug(f"Getting description for item: {name}")
+            logger.debug(f"[GenerateAnswer]Getting description for item: {name}")
             description = await PromptRunner(self).run_prompt(self.DESCRIPTION_PROMPT_NAME)
             logger.debug(f"Got description for item: {name}")
             return (url, name, site, description["description"], json_str)
@@ -156,11 +183,11 @@ class GenerateAnswer(NLWebHandler):
 
     async def synthesizeAnswer(self): 
         if not self.connection_alive_event.is_set():
-            logger.warning("Connection lost, skipping answer synthesis")
+            logger.warning("[GenerateAnswer]Connection lost, skipping answer synthesis")
             return
             
         try:
-            logger.info("Starting answer synthesis")
+            logger.info("[GenerateAnswer]Starting answer synthesis")
             
             # Check if we have any ranked answers to work with
             if not self.final_ranked_answers:
@@ -175,7 +202,7 @@ class GenerateAnswer(NLWebHandler):
                 return
                 
             response = await PromptRunner(self).run_prompt(self.SYNTHESIZE_PROMPT_NAME, timeout=100, verbose=True)
-            logger.debug(f"Synthesis response received")
+            logger.info(f"[GenerateAnswer]Synthesis response received")
             
             json_results = []
             description_tasks = []
@@ -183,7 +210,7 @@ class GenerateAnswer(NLWebHandler):
             
             # Create initial message with just the answer
             message = {"message_type": "nlws", "@type": "GeneratedAnswer", "answer": answer, "items": json_results}
-            logger.info("Sending initial answer")
+            logger.info(f"Sending initial answer {message}", message)
             await self.send_message(message)
             
             # Process each URL mentioned in the response
@@ -224,12 +251,13 @@ class GenerateAnswer(NLWebHandler):
                     # Update message with descriptions
                     message = {"message_type": "nlws", "@type": "GeneratedAnswer", "answer": answer, "items": json_results}
                     logger.info(f"Sending final answer with {len(json_results)} item descriptions")
+                    logger.info(f"Final message: {message}")
                     await self.send_message(message)
             else:
                 logger.warning("No URLs found in synthesis response")
                 
         except Exception as e:
-            logger.exception(f"Error in synthesizeAnswer: {e}")
+            logger.exception(f"[GenerateAnswer]Error in synthesizeAnswer: {e}")
             if self.connection_alive_event.is_set():
                 try:
                     error_msg = {"message_type": "nlws", "@type": "GeneratedAnswer", "answer": "I encountered an error while generating your answer. Please try again.", "items": []}

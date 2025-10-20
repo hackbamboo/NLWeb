@@ -346,6 +346,7 @@ class BingSearchClient(RetrievalClientBase):
         Returns:
             List of search results in NLWeb format
         """
+        print("[DEBUG] Bing search called")
         try:
             # Check for feature flags from query_params or kwargs
             query_params = kwargs.get('query_params', {})

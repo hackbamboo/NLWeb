@@ -11,6 +11,7 @@ Backwards compatibility is not guaranteed at this time.
 import json
 import traceback
 import asyncio
+from methods.generate_answer import GenerateAnswer
 from core.baseHandler import NLWebHandler
 # from webserver.StreamingWrapper import HandleRequest, SendChunkWrapper  # Removed - using direct handlers
 from misc.logger.logger import get_logger, LogLevel
@@ -234,6 +235,8 @@ class MCPHandler:
             if sites:
                 query_params["site"] = sites if isinstance(sites, list) else [sites]
             query_params["generate_mode"] = [generate_mode] if generate_mode else ["list"]
+            print(f"streaming=== QUERY PARAMS BEING PASSED ===")
+            print(f"query_params: {query_params}")
             
             # Create a streaming wrapper that sends SSE events
             class SSEStreamer:
@@ -258,7 +261,12 @@ class MCPHandler:
             
             try:
                 # Process the query using NLWebHandler
-                handler = NLWebHandler(query_params, stream_chunk)
+                if generate_mode == 'generate':
+                    logger.debug("Using GenerateAnswer handler for streaming ask")
+                    handler = GenerateAnswer(query_params, stream_chunk)
+                else:
+                    logger.debug("Using regular NLWebHandler for streaming ask")
+                    handler = NLWebHandler(query_params, stream_chunk)
                 await handler.runQuery()
                 
                 # Send final event
@@ -311,8 +319,8 @@ class MCPHandler:
             if sites:
                 query_params["site"] = sites if isinstance(sites, list) else [sites]
             query_params["generate_mode"] = [generate_mode] if generate_mode else ["list"]
-            # print(f"=== QUERY PARAMS BEING PASSED ===")
-            # print(f"query_params: {query_params}")
+            print(f"=== QUERY PARAMS BEING PASSED ===")
+            print(f"query_params: {query_params}")
 
             # Create a response accumulator
             response_content = []
@@ -334,7 +342,12 @@ class MCPHandler:
             # Process the query using NLWebHandler with a timeout
             # print(f"=== CREATING NLWebHandler ===")
             # print(f"Query params: {query_params}")
-            handler = NLWebHandler(query_params, capture_chunk)
+            if generate_mode == 'generate':
+                logger.debug("Using GenerateAnswer handler for regular ask")
+                handler = GenerateAnswer(query_params, capture_chunk)
+            else:
+                logger.debug("Using regular NLWebHandler for regular ask")
+                handler = NLWebHandler(query_params, capture_chunk)
             try:
                 # print(f"=== CALLING handler.runQuery() ===")
                 # Add a 30-second timeout for MCP requests

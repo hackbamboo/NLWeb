@@ -10,6 +10,7 @@ import json
 import asyncio
 import uuid
 from typing import Dict, Any, Optional
+from methods.generate_answer import GenerateAnswer
 from core.baseHandler import NLWebHandler
 from misc.logger.logger import get_logger
 
@@ -163,7 +164,12 @@ class A2AHandler:
         
         # Process query with NLWebHandler
         try:
-            handler = NLWebHandler(query_params, collector)
+            if generate_mode == 'generate':
+                logger.debug("Using GenerateAnswer handler for regular ask")
+                handler = GenerateAnswer(query_params, collector)
+            else:
+                logger.debug("Using regular NLWebHandler for regular ask")
+                handler = NLWebHandler(query_params, collector)
             await asyncio.wait_for(handler.runQuery(), timeout=30.0)
             
             # Combine chunks into response

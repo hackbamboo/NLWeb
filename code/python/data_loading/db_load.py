@@ -732,7 +732,7 @@ async def loadJsonToDB(file_path: str, site: str, batch_size: int = 100, delete_
         
         # Detect file type
         file_type, has_embeddings = await detect_file_type(resolved_path)
-        print(f"Detected file type: {file_type}")
+        print(f"Detected file type: {file_type} and has_embeddings: {has_embeddings}")
         
         # If embeddings are detected, switch to loadJsonWithEmbeddingsToDB
         if has_embeddings and not force_recompute:

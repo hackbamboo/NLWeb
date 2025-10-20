@@ -87,7 +87,7 @@ storage_endpoints:
     # Collection name for conversations
     collection_name: nlweb_conversations
     # Vector size for embeddings
-    vector_size: 1536
+    vector_size: 3072
     
   # Remote Qdrant server
   qdrant_remote:

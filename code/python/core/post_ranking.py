@@ -2,6 +2,7 @@ from core.state import NLWebHandlerState
 import asyncio
 from core.prompts import PromptRunner
 from misc.logger.logging_config_helper import get_configured_logger
+from core.schemas import Message, SenderType, MessageType
 
 logger = get_configured_logger("post_ranking")
 
@@ -43,6 +44,7 @@ class PostRanking:
             for result in results:
                 # Check if result has schema_object field
                 if 'schema_object' not in result:
+                    logger.debug("Result missing schema_object, skipping")
                     continue
                 
                 schema_obj = result['schema_object']
@@ -135,9 +137,22 @@ class SummarizeResults(PromptRunner):
         self.handler.final_ranked_answers = self.handler.final_ranked_answers[:3]
         response = await self.run_prompt(self.SUMMARIZE_RESULTS_PROMPT_NAME, timeout=20)
         if (not response):
+            logger.error("No response from SummarizeResults prompt")
             return
         self.handler.summary = response["summary"]
-        message = {"message_type": "result", "@type": "Summary", "content": self.handler.summary}
-        asyncio.create_task(self.handler.send_message(message))
+        # Build a proper Message object, store it so runQuery() will return it,
+        # and await sending so the send completes before runQuery returns.
+        summary_content = {"@type": "Summary", "content": self.handler.summary}
+        summary_msg = Message(
+            sender_type=SenderType.ASSISTANT,
+            message_type=MessageType.RESULT,
+            content=[summary_content],
+            conversation_id=self.handler.conversation_id
+        )
+        # Append to handler.messages so runQuery() includes it in its return value
+        self.handler.messages.append(summary_msg)
+        logger.info("Sending summary message to client", summary_msg.to_dict())
+        # Await the send so it finishes before runQuery() continues/returns
+        await self.handler.send_message(summary_msg.to_dict())
         # Use proper state update
         await self.handler.state.precheck_step_done("post_ranking")
